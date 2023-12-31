@@ -20,6 +20,9 @@ class Graph{
             point.draw(ctx);
         }
     }
+    hash(){
+        return JSON.stringify(this);
+    }
     dispose(){
         this.segments.length = 0;
         this.points.length = 0;

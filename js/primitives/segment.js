@@ -12,10 +12,36 @@ class Segment{
         ctx.lineTo(this.p2.x, this.p2.y);
         ctx.stroke();
     }
+    distanceToPoint(point){
+        const proj = this.projectionPoint(point);
+        if(proj.offset > 0 && proj.offset < 1){
+            return distance(point, proj.point);
+        }
+        const distanceToP1 = distance(point, this.p1);
+        const distanceToP2 = distance(point, this.p2);
+        return Math.min(distanceToP1, distanceToP2);
+    }
+    projectionPoint(point){
+        const a = subtract(point, this.p1);
+        const b = subtract(this.p2, this.p1);
+        const normB = normalize(b);
+        const scaler = dot(a, normB);
+        const proj = {
+            point : add(this.p1, scale(normB, scaler)),
+            offset : scaler/magnitude(b)
+        };
+        return proj;
+    }
     equals(seg){
         return this.includes(seg.p1)&&this.includes(seg.p2);
     }
     includes(point){
         return this.p1.equals(point)|| this.p2.equals(point);
+    }
+    length(){
+        return distance(this.p1, this.p2);
+    }
+    directionVector(){
+        return normalize(subtract(this.p2, this.p1));
     }
 }
