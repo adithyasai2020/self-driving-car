@@ -3,6 +3,15 @@ class Graph{
         this.points = points
         this.segments = segments
     }
+    static load(info){
+        const points = info.points.map((i)=> new Point(i.x, i.y));
+        const segments = info.segments.map((i)=>new Segment(
+            points.find((p)=>p.equals(i.p1)),
+            points.find((p)=>p.equals(i.p2))
+        ));
+        
+        return new Graph(points, segments);
+    }
     draw(ctx){
         for(const seg of this.segments){
             seg.draw(ctx);
