@@ -10,6 +10,20 @@ function getNearestPoint(loc, points, threshold = Number.MAX_SAFE_INTEGER){
     }
     return nearest;
 }
+
+function getNearestSegment(loc, segments, threshold = Number.MAX_SAFE_INTEGER){
+    let minDist = Number.MAX_SAFE_INTEGER;
+    let nearest = null;
+    for(const seg of segments){
+        const dist = seg.distanceToPoint(loc);
+        if(dist< minDist && dist < threshold){
+            minDist = dist;
+            nearest = seg;
+        }
+    }
+    return nearest;
+}
+
 function distance(p1, p2){
     return Math.hypot(p1.x-p2.x, p1.y- p2.y);
 }
@@ -42,6 +56,9 @@ function translate(loc, angle, offset){
         loc.y + Math.sin(angle)*offset
     );
 }
+function perpendicular(p){
+    return new Point(-p.y, p.x);
+}
 function dot(a, b){
     return a.x*b.x + a.y*b.y;
 }
@@ -67,6 +84,10 @@ function getIntersection(A, B, C, D){
 }
 function lerp(a, b, t){
     return a + (b - a) * t;
+}
+
+function lerp2D(A, B, t){
+    return new Point(lerp(A.x, B.x, t), lerp(A.y, B.y, t));
 }
 
 function getRandomColor(){

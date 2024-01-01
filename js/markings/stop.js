@@ -1,0 +1,22 @@
+class Stop extends Marking{
+    constructor(center, directionVector, width, height){
+        super(center, directionVector, width, height);
+        this.border = this.poly.segments[0];
+    }
+    draw(ctx){
+        this.border.draw(ctx, {width : 5, color : "white"});
+        ctx.save();
+        ctx.translate(this.center.x, this.center.y);
+        ctx.rotate(  Math.atan2(this.directionVector.y, this.directionVector.x)  - Math.PI/2 );
+        ctx.scale(-1, -3);
+
+        ctx.beginPath();
+        ctx.textBaseLine = "middle";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "white";
+        ctx.font = "bold" +  this.height * 0.3 + "px Arial"
+        ctx.fillText("STOP", 0, 1);
+
+        ctx.restore();
+    }
+}

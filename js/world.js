@@ -9,9 +9,11 @@ class World{
         this.buildingMinLength = buildingMinLength;
         this.spacing = spacing;
         this.buildings = [];
+        this.laneGuides = [];
         this.treeSize = treeSize;
-        this.generate();
         this.trees = [];
+        this.markings = [];
+        this.generate();
     }
     generate(){
         
@@ -25,12 +27,29 @@ class World{
         this.buildings = this.#generateBuildings();
         this.trees = this.#generateTrees();
 
+        this.laneGuides.length = 0;
+        this.laneGuides.push(...this.#generateLaneGuides());
+
+    }
+
+    #generateLaneGuides(){
+        const tmpEnvelopes = [];
+        for(const seg of this.graph.segments){
+            tmpEnvelopes.push(
+                new Envelope(
+                    seg,
+                    this.roadWidth/2 ,
+                    this.roundness
+                )
+            );
+        }
+        return Polygon.union(tmpEnvelopes.map((e) => e.poly));
     }
 
     #generateTrees(count = 10){
         const points = [
             ...this.roadBorders.map((s)=>[s.p1, s.p2]).flat(),
-            ...this.buildings.map((b)=>b.points).flat()
+            ...this.buildings.map((b)=>b.base.points).flat()
 
         ];
         const left = Math.min(...points.map((p)=>p.x));
@@ -38,7 +57,7 @@ class World{
         const top = Math.min(...points.map((p)=>p.y));
         const bottom = Math.max(...points.map((p)=>p.y));
         const illegalPolys = [
-            ...this.buildings,
+            ...this.buildings.map((b) => b.base),
             ...this.envelopes.map((e)=> e.poly)
         ];
         const trees = [];
@@ -60,7 +79,7 @@ class World{
             //check if trees are not too close
             if(keep){
                 for(const tree of trees){
-                    if(distance(tree, p)<this.treeSize){
+                    if(distance(tree.center, p)<this.treeSize){
                         keep = false;
                         break;
                     }
@@ -78,7 +97,7 @@ class World{
                 keep = closeToSomething;
             }
             if(keep){
-                trees.push(p);
+                trees.push( new Tree(p, this.treeSize));
                 tryCount = 0;
 
             }
@@ -141,16 +160,19 @@ class World{
                 }
             }
         }
-        return bases;
+        return bases.map((b) => new Building(b));
     }
 
 
-    draw(ctx){
+    draw(ctx, viewPoint){
         if(this.graph.points.length<2){
             return;
         }
         for(const env of this.envelopes){
             env.draw(ctx, {fill:"#BBB", stroke : "#BBB", lineWidth : 15});
+        }
+        for(const marking of this.markings){
+            marking.draw(ctx);
         }
         for(const seg of this.graph.segments){
             // console.log("came here")
@@ -159,11 +181,18 @@ class World{
         for(const seg of this.roadBorders){
             seg.draw(ctx, {color: "white", width : 4});
         }
-        for(const bld of this.buildings){
-            bld.draw(ctx);
+        const items = [
+            ...this.buildings,
+            ...this.trees
+        ];
+        items.sort(
+            (a, b) =>
+                b.base.distanceToPoint(viewPoint) - a.base.distanceToPoint(viewPoint)
+        );
+        for(const item of items){
+            item.draw(ctx, viewPoint);
         }
-        for(const tree of this.trees){
-            tree.draw(ctx, {size:this.treeSize, color:"rgba(0, 0, 0, 0.5"});
-        }
+
+        
     }
 }
